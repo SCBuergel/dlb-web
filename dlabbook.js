@@ -147,11 +147,10 @@ $(function(){
     	ipfs.add(buf, function(err, res){
             if (err || !res)
             {
-				error("ipfs error: " + err);
                 // this is async, so we cannot throw the error as the catch block below is already done.
                 // render error again
 
-                error("Could not connect to IPFS node. Make sure <ul><li>you have IPFS running on your local machine, start it with 'ipfs daemon'</li><li>before you start the daemon, set the cors domain with 'ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin \"[\\\"*\\\"]\"'</li></ul></div>");
+                error("Could not connect to IPFS node. Make sure <ul><li>you have IPFS running on your local machine, start it with 'ipfs daemon'</li><li>before you start the daemon, set the cors domain with 'ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin \"[\\\"*\\\"]\"'</li></ul>ipfs error: " + err + "</div>");
                 return;
             }
             info("connected to local IPFS node");
@@ -159,7 +158,7 @@ $(function(){
 	}
 	catch (err)
 	{
-        error("Could not connect to IPFS node. Make sure <ul><li>you have IPFS running on your local machine, start it with 'ipfs daemon'</li><li>before you start the daemon, set the cors domain with 'ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin \"[\\\"*\\\"]\"'</li></ul></div>");
+		error("Could not connect to IPFS node. Make sure <ul><li>you have IPFS running on your local machine, start it with 'ipfs daemon'</li><li>before you start the daemon, set the cors domain with 'ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin \"[\\\"*\\\"]\"'</li></ul>ipfs error: " + err + "</div>");
 	}
 	
     $("#buttonPublish").button().click(function(event){
@@ -360,7 +359,8 @@ function info(msg)
 	// todo: we might want to pop up if we enable debug mode or increased verbosity
 			// but then it should be an info and not alert class
 			
-	$(".container").prepend("<div class='alert alert-danger alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Info:</strong><br />" + msg + "</div>");
+	$(".container").prepend("<div class='alert alert-info alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Info:</strong><br />" + msg + "</div>");
+	$(".alert-info").delay(2000).remove();
 	$("#debug").append(document.createTextNode("Info: " + msg));
 	$("#debug").append("<br />");
 }
