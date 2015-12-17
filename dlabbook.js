@@ -3,6 +3,7 @@ $(function(){
     contRegContractAddress = "0x17956ba5f4291844bc25aedb27e69bc11b5bda39";
     defaultAccount = "0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826";
 	
+	contracts = [];
 	/* 
 //	buddies: (for approving change of address)
 //		B1 adds address of buddies B2, B3, B4 and number N to the contract D1
@@ -220,26 +221,43 @@ $(function(){
 		var source = editor.getSession().getValue();
 		try
 		{
+			// compiled is a variblae containing JSON-formatted output (containing abi + evm code from all contract in source)
 			compiled = web3.eth.compile.solidity(source);
 
+			// remove all content of previous compile runs
+			$("#contractContent").empty();	// remove from UI
+			contracts = [];					// remove from compile output
+			var c = 0;
 			for (var contractName in compiled)
 			{	// looping over all contracts (we might have more than one contract in code base)
 				info("found contract: " + contractName);
 				contractJson = eval("compiled." + contractName);
 
-				// todo:
-				//		do not overwrite but append
-				//		dynamically create multi-contract deploy
-				
-				// implementation:
-				//		write abi and code into array of objects (abi + code pair)
-				//		dynamically create elements into which abis + codes are written
-				//		on click "deploy", deploy all contracts
-				//		dynamically create elements into which address is written
 				abi = contractJson.info.abiDefinition;
 				evmCode = contractJson.code;
-				$("#compiledAbi").text(JSON.stringify(abi));
-				$("#compiledCode").text(evmCode);
+				source = contractJson.info.source;
+				
+				// appending compiled output to contracts array
+				contracts.push(new contrHolder(source, abi, evmCode));
+				contracts[c].status = 1;
+
+				// todo: should abi be escaped to prevent some html injections? (is this even possible from JSON?)
+				
+				$("#contractContent").append(
+				"<div class=\"row\"><div class=\"col-md-12\"><h3>contract " + 
+				contractName + 
+				"</h3></div></div>" + 
+				"<div class=\"row\"><div class=\"col-md-4\">abi: </div>" + 
+				"<div class=\"col-md-8\" style=\"word-break: break-all;\">" + 
+				JSON.stringify(abi) + 
+				"</div></div>" + 
+				"<div class=\"row\"><div class=\"col-md-4\">code: </div>" + 
+				"<div class=\"col-md-8\" style=\"word-break: break-all;\">" + 
+				evmCode + 
+				"</div></div>" +
+				"<div class=\"row\"><div class=\"col-md-4\">address: </div>" + 
+				"<div id=\"contractAddress" + c + "\" class=\"col-md-8\" style=\"word-break: break-all;\">[contract not deployed]</div></div>");
+				c = c + 1;
 			}
 		}
 		catch (e)
@@ -249,11 +267,22 @@ $(function(){
 	})
 	
 	$("#buttonDeploy").click(function(event){
-		var primaryAddress = web3.eth.accounts[0];
-		// todo: make sure that abi is defined
-		var MyContract = web3.eth.contract(abi);
-		contract = MyContract.new({from: primaryAddress, data: evmCode})
-		$("#contractAddress").text("[waiting for contract to be mined...]");
+		try
+		{
+			var primaryAddress = web3.eth.accounts[0];
+			
+			for (var c = 0; c < contracts.length; c++)
+			{
+				var MyContract = web3.eth.contract(contracts[c].abi);
+				contracts[c].contract = MyContract.new({from: primaryAddress, data: contracts[c].code})
+				$("#contractAddress" + c).text("[waiting for contract to be mined...]");
+				contracts[c].status = 2;
+			}
+		}
+		catch (e)
+		{
+			error("Deployment error: " + e);
+		}
 	})
 	
 	editor = ace.edit("editor");
@@ -276,6 +305,28 @@ function updateLastBlockCounter()
 		$("#lastBlockTx").text(latestBlk.transactions.length);
 		$("#pendingTx").text(web3.eth.getBlock("pending", true).transactions.length);
 		$("#hashRate").text(web3.eth.hashrate);
+		for (var c = 0; c < contracts.length; c++)
+		{	// check all contracts
+			if (contracts[c].status == 1)
+				$("#contractAddress" + c).text("[contract not deployed]");
+			else if (contracts[c].status == 2)
+			{	// if contract has status "deployed" then check if it has been mined, if so, show its address
+				if (typeof contracts[c].contract.address === 'undefined')
+					$("#contractAddress" + c).text("[waiting for contract to be mined]");
+				else
+				{
+					contracts[c].status = 3;
+					$("#contractAddress" + c).text(contracts[c].contract.address);
+				}
+			}
+			else if (contracts[c].status == 3)
+				$("#contractAddress" + c).text(contracts[c].contract.address);
+			else if (contracts[c].status == 4)
+				$("#contractAddress" + c).text("[error]");
+			else
+				$("#contractAddress" + c).text("[unknown contract status id: " + contracts[c].status + "]");
+		}
+
 		if (typeof contract === 'undefined')
 			$("#contractAddress").text("[contract not deployed]");
 		else
@@ -337,6 +388,15 @@ function updateGethAddress()
 	}
 }
 
+function contrHolder (source, abi, code)
+{	// object holding solidity source code, abi definition and evm code of a contract
+	this.source = source;
+	this.abi = abi;
+	this.code = code;
+	this.address = "";
+	this.status = 0;	// 0 = not compiled, 1 = not deployed, 2 = not mined, 3 = deployed
+}
+
 function updateIpfsAddress()
 {
     var ipfsAddress = $("#ipfsAddress").val();
@@ -359,8 +419,7 @@ function info(msg)
 	// todo: we might want to pop up if we enable debug mode or increased verbosity
 			// but then it should be an info and not alert class
 			
-	$(".container").prepend("<div class='alert alert-info alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Info:</strong><br />" + msg + "</div>");
-	$(".alert-info").delay(2000).remove();
+	//$(".container").prepend("<div class='alert alert-info alert-dismissible' role='alert'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Info:</strong><br />" + msg + "</div>");
 	$("#debug").append(document.createTextNode("Info: " + msg));
 	$("#debug").append("<br />");
 }

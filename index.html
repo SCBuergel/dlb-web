@@ -17,7 +17,6 @@
 		<script type="text/javascript" src="ace/theme-twilight.js" charset="utf-8"></script>
         <script type="text/javascript" src="dlabbook.js"></script>
 
-
         <title>Distributed Smart Lab Book on Ethereum and IPFS</title>
     </head>
     
@@ -99,7 +98,8 @@
           email-address or username for identification:
           <input type="text" id="username" ><br /><br />
           address of geth node:<br />
-          <input type="text" id="gethAddress" style="width: 100%;" value="http://46.101.178.22:8545">
+<!--          <input type="text" id="gethAddress" style="width: 100%;" value="http://localhost:8545">
+-->          <input type="text" id="gethAddress" style="width: 100%;" value="http://46.101.178.22:8545">
           <button id="updateGethAddress">save</button>
           <div id="gethDebug"></div>
         </div>
@@ -110,11 +110,18 @@
         <div class="col-md-8">
 			<h2>solidity editor</h2>
 				<pre id="editor" class="editor" style="height: 500px;">
-contract test 
+contract multContr 
 {
 	function multiply(uint a) returns(uint d) 
 	{ 
 		return a * 7; 
+	} 
+}
+contract divContr 
+{
+	function divide(uint a) returns(uint d) 
+	{ 
+		return a / 7; 
 	} 
 }
 			</pre>
@@ -130,21 +137,12 @@ contract test
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-md-2">abi:</div>
-					<div class="col-md-10" id="compiledAbi" style="word-break: break-all;">[click 'compile' to generate abi]</div>
-				</div>
-				<div class="row">
-					<div class="col-md-2">code:</div>
-					<div class="col-md-10" id="compiledCode" style="word-break: break-all;">[click 'compile' to generate code]</div>
+					<div class="col-md-12" id="contractContent"></div>
 				</div>
 				<div class="row">
 					<div class="col-md-12">
 						<button id="buttonDeploy">deploy</button>
 					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-2">address:</div>
-					<div class="col-md-10" id="contractAddress" style="word-break: break-all;">[contract not deployed]</div>
 				</div>
 				<div class="row">
 					<div class="col-md-12"><h2>test net info</h2></div>
