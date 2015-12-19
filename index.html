@@ -12,16 +12,42 @@
         <script type="text/javascript" src="ipfsapi.min.js"></script>
         <script type="text/javascript" src="contRegAbi.js"></script>
         <script type="text/javascript" src="nameRegAbi.js"></script>
+        <script type="text/javascript" src="js.cookie.js"></script>
 		<script type="text/javascript" src="ace/ace.js" charset="utf-8"></script>
 		<script type="text/javascript" src="ace/mode-javascript.js" charset="utf-8"></script>
 		<script type="text/javascript" src="ace/theme-twilight.js" charset="utf-8"></script>
         <script type="text/javascript" src="dlabbook.js"></script>
 
         <title>Distributed Smart Lab Book on Ethereum and IPFS</title>
+		<style>
+		.minimize{	/* class that is toggled to minimize api + code definition after compilation */
+			height: 60px;
+			overflow: hidden;
+		}			
+		.white-gradient {
+			position: relative;
+		}
+		.white-gradient:after { /* adding a gradient over some background when minimized (both classes get toggled) */
+			content: '';
+			display: block;
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 100%;
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#00ffffff',GradientType=0 );
+			background: -webkit-gradient(linear, left top, right top, color-stop(0%, rgba(255,255,255,1)), color-stop(100%, rgba(255,255,255,0)));
+			background: -webkit-linear-gradient(right, rgba(255,255,255,1) 0%,rgba(255,255,255,0) 100%);
+			background:    -moz-linear-gradient(right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+			background:     -ms-linear-gradient(right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+			background:      -o-linear-gradient(right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+			background:         linear-gradient(right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+		}
+		</style>
     </head>
     
     <body>
-      <div class="container">
+      <div class="container" style="width: 100%;">
         
       <!-- top menu bar -->
       <nav class="navbar navbar-default">
@@ -94,14 +120,46 @@
           <div id="ipfsDebug"></div>
         </div>
         <div class="col-md-6">
-          <h2>Ethereum settings</h2>
-          email-address or username for identification:
-          <input type="text" id="username" ><br /><br />
-          address of geth node:<br />
-<!--          <input type="text" id="gethAddress" style="width: 100%;" value="http://localhost:8545">
--->          <input type="text" id="gethAddress" style="width: 100%;" value="http://46.101.178.22:8545">
-          <button id="updateGethAddress">save</button>
-          <div id="gethDebug"></div>
+			<h2>Ethereum settings</h2>
+			<div class="row">
+				<div class="col-md-5">email-address</div>
+				<div class="col-md-7"><input type="text" id="username" style="width: 100%;"></div>
+			</div>
+			<div class="row">
+				<div class="col-md-5">address of geth node:</div>
+				<div class="col-md-7">
+					<!--
+						<input type="text" id="gethAddress" style="width: 100%;" value="http://localhost:8545">
+					-->
+					<input type="text" id="gethAddress" style="width: 100%;" value="http://46.101.178.22:8545">
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-5">name registry address</div>
+				<div class="col-md-7"><input type="text" id="nameRegAddress" style="width: 100%;" value="0xbf840e616196041168ac342474a10cc28e27b493"></div>
+			</div>
+			<div class="row">
+				<div class="col-md-5">name registry abi</div>
+				<div class="col-md-7">
+					<textarea type="text" id="nameRegAbi" rows="5" style="width: 100%;">[{"constant":true,"inputs":[{"name":"","type":"bytes32"}],"name":"NameRegister","outputs":[{"name":"","type":"address"}],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"AddressRegister","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":false,"inputs":[{"name":"name","type":"string"}],"name":"Register","outputs":[],"type":"function"},{"constant":true,"inputs":[],"name":"AmIOwner","outputs":[{"name":"","type":"bool"}],"type":"function"},{"constant":true,"inputs":[],"name":"GetMyName","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":true,"inputs":[{"name":"name","type":"string"}],"name":"IsRegistered","outputs":[{"name":"","type":"bool"}],"type":"function"},{"inputs":[],"type":"constructor"}]</textarea>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-5">content registry address</div>
+				<div class="col-md-7"><input type="text" id="contRegAddress" style="width: 100%;" value="0x0ad6b4feaa7ec5ea01fc79ecf27af133ce802142"></div>
+			</div>
+			<div class="row">
+				<div class="col-md-5">content registry abi</div>
+				<div class="col-md-7">
+					<textarea type="text" id="contRegAbi" rows="5" style="width: 100%;">[{"constant":true,"inputs":[{"name":"adr","type":"address"},{"name":"index","type":"uint256"}],"name":"getContentItemTime","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[],"name":"contentRegistry","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"adr","type":"address"}],"name":"getNumberOfEntries","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":true,"inputs":[{"name":"adr","type":"address"},{"name":"index","type":"uint256"}],"name":"getContentItemIpfsAddress","outputs":[{"name":"","type":"string"}],"type":"function"},{"constant":true,"inputs":[],"name":"AmIOwner","outputs":[{"name":"","type":"bool"}],"type":"function"},{"constant":false,"inputs":[{"name":"_ipfsAddress","type":"string"}],"name":"registerContent","outputs":[],"type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"uint256"}],"name":"ContentRegister","outputs":[{"name":"ipfsAddress","type":"bytes"},{"name":"time","type":"uint256"}],"type":"function"}]</textarea>
+				</div>
+			</div>
+			<div class="row">
+				<button id="updateGethSettings">save</button>
+			</div>
+			<div class="row">
+				<div id="gethDebug"></div>
+			</div>
         </div>
       </div>
 
@@ -109,66 +167,147 @@
       <div class="row dlbcontent" id="contentEdit">
         <div class="col-md-8">
 			<h2>solidity editor</h2>
-				<pre id="editor" class="editor" style="height: 500px;">
-contract multContr 
+				<pre id="editor" class="editor" style="height: calc(100% - 200px); min-height: 200px;">
+contract Owned
 {
-	function multiply(uint a) returns(uint d) 
-	{ 
-		return a * 7; 
-	} 
+    address owner;  // do we really need an owner?!
+                    // it would allow for features such as "manually" removing or overwriting entries but that is centralization, do we want that?!
+                    // if the owners private key is compromised, we are all screwed....
+                    
+    function Owned()
+    {
+        owner = msg.sender;
+    }
+    
+    function AmIOwner () constant returns(bool)
+    {   // returns true if sender is owner of the contract, otherwise false
+        return msg.sender == owner;
+    }
 }
-contract divContr 
+
+
+
+contract DlabbookNameRegistry is Owned
+{   // this contract handles the name registering it maps username/email to an address
+    mapping(bytes32 => address) public NameRegister;
+    mapping(address => string) public AddressRegister;
+    
+    modifier stringLengthNotNull (string _arg)
+    {   // preventing empty strings
+        if (bytes(_arg).length > 0) _
+    }
+    
+    function DlabbookNameRegistry()
+    {   // constructor, nothing to do here for now
+    }
+
+    function Register(string name) stringLengthNotNull(name)
+    {   // registers a name (e.g. email) to an address (in the background we use hashes not strings)
+        // name cannot be empty
+        
+        bytes32 hashedName = sha3(name);
+        
+		uint len = bytes(AddressRegister[msg.sender]).length;
+        if(NameRegister[hashedName] == 0 && len < 1)
+        {   // register this name and address only if 
+            // the name is not yet taken
+            // and if the address is not yet registered to another name
+            NameRegister[hashedName] = msg.sender;
+            AddressRegister[msg.sender] = name;
+        }
+    }
+    
+    function GetMyName() constant returns (string)
+    {
+        return (AddressRegister[msg.sender]);
+    }
+    
+    function IsRegistered(string name) stringLengthNotNull(name) constant returns (bool)
+    {   // checks if a certain name is registered or not
+        return (NameRegister[sha3(name)] != 0x0000000000000000000000000000000000000000);
+    }
+}
+
+
+
+contract ContentRegistry is Owned
 {
-	function divide(uint a) returns(uint d) 
-	{ 
-		return a / 7; 
-	} 
+    struct contentItem
+    {
+        bytes ipfsAddress;
+        uint time;
+    }
+    
+    mapping(address => contentItem[]) public ContentRegister;
+    // we need 1 to N mapping as one user might have several pieces of content published
+    
+    function contentRegistry()
+    {   // constructor
+    }
+    
+    function registerContent(string _ipfsAddress)
+    {   // registers content (e.g. IPFS hash)
+        ContentRegister[msg.sender].push(contentItem({ipfsAddress: bytes(_ipfsAddress), time: now}));
+    }
+    
+    function getNumberOfEntries(address adr) constant returns (uint256)
+    {   // we cannot return an array therefore we need to query the number of entries via this separate function
+        uint len = ContentRegister[adr].length;
+        return len;
+	}
+    
+    // the two functions below are required since right now solidity does not allow us to return a struct
+    function getContentItemIpfsAddress(address adr, uint256 index) constant returns (string)
+    {
+        return string(ContentRegister[adr][index].ipfsAddress);
+    }
+    function getContentItemTime(address adr, uint256 index) constant returns (uint)
+    {
+        return ContentRegister[adr][index].time;
+    }
 }
-			</pre>
+</pre>
 		</div>
         <div class="col-md-4">
-			<div class="row" id="contentEdit">
-				<div class="row">
-					<div class="col-md-12"><h2>deploy</h2></div>
-				</div>
-				<div class="row">
-					<div class="col-md-12">
-						<button id="buttonCompile">compile</button>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-12" id="contractContent"></div>
-				</div>
-				<div class="row">
-					<div class="col-md-12">
-						<button id="buttonDeploy">deploy</button>
-					</div>
-				</div>
-				<div class="row">
-					<div class="col-md-12"><h2>test net info</h2></div>
-				</div>
-				<div class="row">
-					<div class="col-md-4">block height:</div>
-					<div class="col-md-8" id="lastBlockNumber"></div>
-				</div>
-				<div class="row">
-					<div class="col-md-4">block time [s]:</div>
-					<div class="col-md-8" id="lastBlockTime"></div>
-				</div>
-				<div class="row">
-					<div class="col-md-4">transactions in block:</div>
-					<div class="col-md-8" id="lastBlockTx"> </div>
-				</div>
-				<div class="row">
-					<div class="col-md-4">pending transactions:</div>
-					<div class="col-md-8" id="pendingTx"></div>
-				</div>
-				<div class="row">
-					<div class="col-md-4">hash rate:</div>
-					<div class="col-md-8" id="hashRate"></div>
+			<div class="row">
+				<div class="col-md-12"><h2>deploy</h2></div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<button id="buttonCompile">compile</button>
 				</div>
 			</div>
-			
+			<div class="row">
+				<div class="col-md-12" id="contractContent"></div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<button id="buttonDeploy">deploy</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12"><h2>test net info</h2></div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">block height:</div>
+				<div class="col-md-8" id="lastBlockNumber"></div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">block time [s]:</div>
+				<div class="col-md-8" id="lastBlockTime"></div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">transactions in block:</div>
+				<div class="col-md-8" id="lastBlockTx"> </div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">pending transactions:</div>
+				<div class="col-md-8" id="pendingTx"></div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">hash rate:</div>
+				<div class="col-md-8" id="hashRate"></div>
+			</div>
       </div>
       
     </div>
